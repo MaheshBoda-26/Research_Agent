@@ -178,6 +178,4 @@ Feel free to open an **Issue** or submit a **Pull Request**.
 
 ---
 
-## 📝 License
 
-This project is open-source and available under the [MIT License](LICENSE).

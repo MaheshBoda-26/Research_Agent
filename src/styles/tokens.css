@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+
+/* ──────────────────────────────────────────────────────────────────
+   Design tokens — analyst-grade market intelligence surface.
+   Light, restrained-neutral, high-readability. One signal accent.
+   OKLCH throughout. Explicitly NOT the AI-purple cliché.
+   ──────────────────────────────────────────────────────────────────*/
+@theme {
+  /* Ink ramp — the bulk of text sits here. Warm-neutral, not beige. */
+  --color-ink-900: oklch(0.22 0.015 260); /* headings */
+  --color-ink-700: oklch(0.38 0.012 260); /* body */
+  --color-ink-500: oklch(0.55 0.01 260);  /* secondary (still ≥4.5:1 on canvas) */
+  --color-ink-300: oklch(0.72 0.008 260); /* borders, hairlines */
+
+  /* Surface ramp — true off-whites toward the ink hue, not warm cream. */
+  --color-canvas:  oklch(0.99 0.003 260);
+  --color-surface: oklch(0.975 0.004 260);
+  --color-surface-2: oklch(0.95 0.005 260);
+
+  /* Signal accent — a deep teal. Deliberately avoids indigo/violet.
+     High contrast against canvas; reads as "trustworthy + precise". */
+  --color-accent:    oklch(0.48 0.12 200);  /* primary */
+  --color-accent-700: oklch(0.40 0.11 200); /* hover/pressed */
+  --color-accent-050: oklch(0.96 0.02 200); /* tint background */
+
+  /* Semantic — data-viz roles (public/private, positive/negative). */
+  --color-public:   oklch(0.48 0.12 200);   /* teal — matches accent */
+  --color-private:  oklch(0.62 0.16 35);    /* warm amber */
+  --color-positive: oklch(0.55 0.13 150);   /* green */
+  --color-negative: oklch(0.55 0.18 25);    /* red */
+
+  /* Categorical palette for sector charts — distinct, not a rainbow ramp. */
+  --color-cat-0: oklch(0.48 0.12 200);
+  --color-cat-1: oklch(0.62 0.16 35);
+  --color-cat-2: oklch(0.55 0.13 150);
+  --color-cat-3: oklch(0.55 0.16 295);
+  --color-cat-4: oklch(0.68 0.15 80);
+  --color-cat-5: oklch(0.55 0.13 250);
+  --color-cat-6: oklch(0.62 0.14 340);
+  --color-cat-7: oklch(0.55 0.12 170);
+  --color-cat-8: oklch(0.50 0.14 130);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Spacing scale — 4px base */
+  --spacing: 0.25rem;
+}
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink-700);
+  line-height: 1.5;
+}
+
+/* Numbers should align in tables/charts */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Focus ring — visible, accessible */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Reduced motion — non-negotiable */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

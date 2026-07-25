@@ -7,27 +7,38 @@
    ──────────────────────────────────────────────────────────────────*/
 @theme {
   /* Ink ramp — the bulk of text sits here. Warm-neutral, not beige. */
-  --color-ink-900: oklch(0.22 0.015 260); /* headings */
-  --color-ink-700: oklch(0.38 0.012 260); /* body */
-  --color-ink-500: oklch(0.55 0.01 260);  /* secondary (still ≥4.5:1 on canvas) */
-  --color-ink-300: oklch(0.72 0.008 260); /* borders, hairlines */
+  --color-ink-900: oklch(0.22 0.015 260);
+  /* headings */
+  --color-ink-700: oklch(0.38 0.012 260);
+  /* body */
+  --color-ink-500: oklch(0.55 0.01 260);
+  /* secondary (still ≥4.5:1 on canvas) */
+  --color-ink-300: oklch(0.72 0.008 260);
+  /* borders, hairlines */
 
   /* Surface ramp — true off-whites toward the ink hue, not warm cream. */
-  --color-canvas:  oklch(0.99 0.003 260);
+  --color-canvas: oklch(0.99 0.003 260);
   --color-surface: oklch(0.975 0.004 260);
   --color-surface-2: oklch(0.95 0.005 260);
 
   /* Signal accent — a deep teal. Deliberately avoids indigo/violet.
      High contrast against canvas; reads as "trustworthy + precise". */
-  --color-accent:    oklch(0.48 0.12 200);  /* primary */
-  --color-accent-700: oklch(0.40 0.11 200); /* hover/pressed */
-  --color-accent-050: oklch(0.96 0.02 200); /* tint background */
+  --color-accent: oklch(0.48 0.12 200);
+  /* primary */
+  --color-accent-700: oklch(0.40 0.11 200);
+  /* hover/pressed */
+  --color-accent-050: oklch(0.96 0.02 200);
+  /* tint background */
 
   /* Semantic — data-viz roles (public/private, positive/negative). */
-  --color-public:   oklch(0.48 0.12 200);   /* teal — matches accent */
-  --color-private:  oklch(0.62 0.16 35);    /* warm amber */
-  --color-positive: oklch(0.55 0.13 150);   /* green */
-  --color-negative: oklch(0.55 0.18 25);    /* red */
+  --color-public: oklch(0.48 0.12 200);
+  /* teal — matches accent */
+  --color-private: oklch(0.62 0.16 35);
+  /* warm amber */
+  --color-positive: oklch(0.55 0.13 150);
+  /* green */
+  --color-negative: oklch(0.55 0.18 25);
+  /* red */
 
   /* Categorical palette for sector charts — distinct, not a rainbow ramp. */
   --color-cat-0: oklch(0.48 0.12 200);
@@ -78,7 +89,10 @@ body {
 
 /* Reduced motion — non-negotiable */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

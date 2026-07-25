@@ -17,7 +17,8 @@ const DEFAULT_DIR: Record<SortField, SortDir> = {
   name: 'asc',
   sector: 'asc',
   founded: 'desc',
-  valuationUSD: 'desc',
+  valuationOrMarketCapUSD: 'desc',
+  revenueUSD: 'desc',
   fundingRaisedUSD: 'desc',
   employees: 'desc',
 };
@@ -85,27 +86,36 @@ function SortHeader({
   );
 }
 
-function StatusBadge({ status }: { status: 'public' | 'private' }) {
-  if (status === 'public') {
+function StatusBadge({ status }: { status: Company['status'] }) {
+  if (status === 'Public') {
     return (
       <span className="inline-flex items-center rounded-full bg-[var(--color-accent-050)] px-2 py-0.5 text-xs font-medium text-accent">
         Public
       </span>
     );
   }
+  if (status === 'Private') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-[oklch(0.95_0.05_35)] px-2 py-0.5 text-xs font-medium text-[oklch(0.42_0.15_35)]">
+        Private
+      </span>
+    );
+  }
   return (
-    <span className="inline-flex items-center rounded-full bg-[oklch(0.95_0.05_35)] px-2 py-0.5 text-xs font-medium text-[oklch(0.42_0.15_35)]">
-      Private
+    <span className="inline-flex items-center rounded-full bg-[oklch(0.9_0.02_45)] px-2 py-0.5 text-xs font-medium text-[oklch(0.5_0.1_45)]">
+      {status}
     </span>
   );
 }
 
 function MoneyCell({ company }: { company: Company }) {
-  if (company.status === 'public') {
+  if (company.status === 'Public') {
     return (
       <div>
-        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationUSD)}</div>
+        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationOrMarketCapUSD)}</div>
         <div className="text-[11px] text-ink-500">Mkt cap</div>
+        <div className="tnum text-ink-700">{formatCompactUSD(company.revenueUSD)}</div>
+        <div className="text-[11px] text-ink-500">Revenue</div>
       </div>
     );
   }
@@ -118,10 +128,10 @@ function MoneyCell({ company }: { company: Company }) {
       </div>
     );
   }
-  if (company.valuationUSD !== null) {
+  if (company.valuationOrMarketCapUSD !== null) {
     return (
       <div>
-        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationUSD)}</div>
+        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationOrMarketCapUSD)}</div>
         <div className="text-[11px] text-ink-500">Est. val.</div>
       </div>
     );
@@ -194,8 +204,14 @@ export function CompanyDirectory({ companies, sort, onSortChange }: Props) {
               </th>
               <SortHeader field="founded" label="Founded" sort={sort} onSortChange={onSortChange} />
               <SortHeader
-                field="valuationUSD"
+                field="valuationOrMarketCapUSD"
                 label="Valuation"
+                sort={sort}
+                onSortChange={onSortChange}
+              />
+              <SortHeader
+                field="revenueUSD"
+                label="Revenue"
                 sort={sort}
                 onSortChange={onSortChange}
               />
@@ -215,13 +231,14 @@ export function CompanyDirectory({ companies, sort, onSortChange }: Props) {
           </thead>
           <tbody>
             {pageRows.map((c) => {
-              const isOpen = expanded === c.rank;
+              const rank = c.rank ?? 0;
+              const isOpen = expanded === rank;
               return (
                 <BodyRows
-                  key={c.rank}
+                  key={rank}
                   company={c}
                   isOpen={isOpen}
-                  onToggle={() => setExpanded(isOpen ? null : c.rank)}
+                  onToggle={() => setExpanded(isOpen ? null : rank)}
                 />
               );
             })}
@@ -341,34 +358,38 @@ function BodyRows({
         </td>
       </tr>
       {isOpen && (
-        <tr className="border-t border-ink-300 bg-surface-2">
-          <td colSpan={8} className="px-4 py-4">
-            <div className="space-y-2 text-sm">
-              <p className="text-ink-700">{c.oneLineDescription}</p>
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-500">
-                <span>
-                  Website:{' '}
-                  <a
-                    href={c.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent hover:text-accent-700 underline"
-                  >
-                    {c.website.replace(/^https?:\/\//, '')}
-                  </a>
-                </span>
-                {c.ticker && (
-                  <span>
-                    Ticker:{' '}
-                    <span className="tnum text-ink-700">{c.ticker}</span>
-                  </span>
-                )}
-                <span>Source: {c.dataSource}</span>
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
+              <tr className="border-t border-ink-300 bg-surface-2">
+                <td colSpan={9} className="px-4 py-4">
+                  <div className="space-y-2 text-sm">
+                    <p className="text-ink-700">{c.oneLineDescription}</p>
+                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-500">
+                      <span>
+                        Website:{' '}
+                        <a
+                          href={c.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent hover:text-accent-700 underline"
+                        >
+                          {c.website.replace(/^https?:\/\//, '')}
+                        </a>
+                      </span>
+                      {c.ticker && (
+                        <span>
+                          Ticker:{' '}
+                          <span className="tnum text-ink-700">{c.ticker}</span>
+                        </span>
+                      )}
+                      <span>Tier: <span className="text-ink-700 font-medium">{c.tier}</span></span>
+                      {c.revenueUSD !== null && (
+                        <span>Revenue: <span className="tnum text-ink-700">{formatCompactUSD(c.revenueUSD)}</span></span>
+                      )}
+                      <span>Source: {c.dataSource}</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
     </>
   );
 }

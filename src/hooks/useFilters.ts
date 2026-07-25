@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Company } from '../data/companies';
+import type { CompanyTier } from '../types/company';
 
 export type StatusFilter = 'all' | 'public' | 'private';
-export type SortField = 'rank' | 'name' | 'sector' | 'founded' | 'valuationUSD' | 'fundingRaisedUSD' | 'employees';
+export type SortField = 'rank' | 'name' | 'sector' | 'founded' | 'valuationOrMarketCapUSD' | 'revenueUSD' | 'fundingRaisedUSD' | 'employees';
 export type SortDir = 'asc' | 'desc';
 
 export interface FilterState {
@@ -11,6 +12,7 @@ export interface FilterState {
   sectors: string[];
   regions: string[];
   status: StatusFilter;
+  tiers: CompanyTier[];
 }
 
 export interface SortState {
@@ -23,6 +25,7 @@ const DEFAULT_FILTERS: FilterState = {
   sectors: [],
   regions: [],
   status: 'all',
+  tiers: [],
 };
 
 /** Parse filter state from the URL search params (so filters are shareable). */
@@ -31,7 +34,8 @@ export function filtersFromParams(params: URLSearchParams): FilterState {
   const sectors = params.get('sectors')?.split(',').filter(Boolean) ?? [];
   const regions = params.get('regions')?.split(',').filter(Boolean) ?? [];
   const status = (params.get('status') as StatusFilter) ?? 'all';
-  return { query: q, sectors, regions, status };
+  const tiers = params.get('tiers')?.split(',').filter(Boolean) as CompanyTier[] ?? [];
+  return { query: q, sectors, regions, status, tiers };
 }
 
 export function filtersToParams(f: FilterState): URLSearchParams {
@@ -40,15 +44,17 @@ export function filtersToParams(f: FilterState): URLSearchParams {
   if (f.sectors.length) params.set('sectors', f.sectors.join(','));
   if (f.regions.length) params.set('regions', f.regions.join(','));
   if (f.status !== 'all') params.set('status', f.status);
+  if (f.tiers.length) params.set('tiers', f.tiers.join(','));
   return params;
 }
 
 export function applyFilters(companies: Company[], f: FilterState): Company[] {
   const q = f.query.trim().toLowerCase();
   return companies.filter((c) => {
-    if (f.status !== 'all' && c.status !== f.status) return false;
+    if (f.status !== 'all' && c.status.toLowerCase() !== f.status) return false;
     if (f.sectors.length > 0 && !f.sectors.includes(c.sector)) return false;
     if (f.regions.length > 0 && !f.regions.includes(c.region)) return false;
+    if (f.tiers.length > 0 && !f.tiers.includes(c.tier)) return false;
     if (q) {
       const haystack = `${c.name} ${c.subsector} ${c.sector} ${c.hqCity} ${c.hqCountry} ${c.oneLineDescription}`.toLowerCase();
       if (!haystack.includes(q)) return false;
@@ -61,8 +67,8 @@ export function sortCompanies(companies: Company[], sort: SortState): Company[] 
   const { field, dir } = sort;
   const factor = dir === 'asc' ? 1 : -1;
   return [...companies].sort((a, b) => {
-    const av = a[field];
-    const bv = b[field];
+    const av = a[field as keyof Company];
+    const bv = b[field as keyof Company];
     if (av === null && bv === null) return 0;
     if (av === null) return 1; // nulls sort last regardless of dir
     if (bv === null) return -1;

@@ -1,4 +1,4 @@
-import { SECTORS, REGIONS } from '../data/companies';
+import { SECTORS, REGIONS, type CompanyTier } from '../data/companies';
 import { toggle, type FilterState, type StatusFilter } from '../hooks/useFilters';
 
 interface Props {
@@ -15,20 +15,29 @@ const STATUSES: { label: string; value: StatusFilter }[] = [
   { label: 'Private', value: 'private' },
 ];
 
+const TIERS: { label: string; value: CompanyTier }[] = [
+  { label: 'Fortune 500', value: 'fortune500' },
+  { label: 'Big Tech', value: 'big-tech' },
+  { label: 'AI Frontier', value: 'ai-frontier' },
+  { label: 'Unicorn', value: 'unicorn' },
+  { label: 'Public Large', value: 'public-large' },
+  { label: 'Public Mid', value: 'public-mid' },
+];
+
 const anyFilterActive = (f: FilterState): boolean =>
-  f.query.trim() !== '' || f.sectors.length > 0 || f.regions.length > 0 || f.status !== 'all';
+  f.query.trim() !== '' || f.sectors.length > 0 || f.regions.length > 0 || f.status !== 'all' || f.tiers.length > 0;
+
+const chipClass = (active: boolean) =>
+  [
+    'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+    'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent',
+    active
+      ? 'border-accent bg-accent text-white'
+      : 'border-ink-300 bg-surface text-ink-700 hover:bg-surface-2',
+  ].join(' ');
 
 export function FilterBar({ filters, filteredCount, totalCount, onChange, onReset }: Props) {
   const showReset = anyFilterActive(filters);
-
-  const chipClass = (active: boolean) =>
-    [
-      'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-      'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent',
-      active
-        ? 'border-accent bg-accent text-white'
-        : 'border-ink-300 bg-surface text-ink-700 hover:bg-surface-2',
-    ].join(' ');
 
   return (
     <div className="flex flex-col gap-3">
@@ -47,12 +56,7 @@ export function FilterBar({ filters, filteredCount, totalCount, onChange, onRese
             className="text-ink-500"
           >
             <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-            <path
-              d="m11 11 3 3"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
+            <path d="m11 11 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </span>
         <input
@@ -101,6 +105,27 @@ export function FilterBar({ filters, filteredCount, totalCount, onChange, onRese
                 className={chipClass(active)}
               >
                 {region}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Tier chips */}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="sr-only">Filter by company tier</legend>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Tiers">
+          {TIERS.map(({ label, value }) => {
+            const active = filters.tiers.includes(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onChange({ tiers: toggle(filters.tiers, value) })}
+                className={chipClass(active)}
+              >
+                {label}
               </button>
             );
           })}

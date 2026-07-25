@@ -21,7 +21,7 @@ function readVar(name: string): string {
 }
 
 /** Deterministic color for a category string. Stable across renders. */
-export function colorForCategory(category: string, index: number): string {
+export function colorForCategory(_category: string, index: number): string {
   const palette = CSS_VARS.map(readVar);
   return palette[index % palette.length];
 }

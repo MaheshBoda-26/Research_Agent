@@ -38,14 +38,19 @@ export function unique<T>(items: T[]): T[] {
 
 /** Total valuation/market cap across a set of companies (null-safe). */
 export function totalCapital(companies: Company[]): number {
-  return sum(companies.map((c) => c.valuationUSD).filter((v): v is number => v !== null));
+  return sum(companies.map((c) => c.valuationOrMarketCapUSD).filter((v): v is number => v !== null));
+}
+
+/** Total revenue across companies (null-safe). */
+export function totalRevenue(companies: Company[]): number {
+  return sum(companies.map((c) => c.revenueUSD).filter((v): v is number => v !== null));
 }
 
 /** Total funding raised across private companies (null-safe). */
 export function totalFunding(companies: Company[]): number {
   return sum(
     companies
-      .filter((c) => c.status === 'private')
+      .filter((c) => c.status === 'Private')
       .map((c) => c.fundingRaisedUSD)
       .filter((v): v is number => v !== null),
   );
@@ -54,12 +59,14 @@ export function totalFunding(companies: Company[]): number {
 export interface KpiSnapshot {
   companyCount: number;
   totalCapital: number;
+  totalRevenue: number;
   totalFunding: number;
   countryCount: number;
   publicCount: number;
   privateCount: number;
   medianFounded: number | null;
   topSector: { sector: string; count: number } | null;
+  tierCounts: Record<string, number>;
 }
 
 export function computeKpis(companies: Company[]): KpiSnapshot {
@@ -72,15 +79,21 @@ export function computeKpis(companies: Company[]): KpiSnapshot {
   }
 
   const sectorCounts = countBy(companies, (c) => c.sector);
+  const tierCounts: Record<string, number> = {};
+  for (const c of companies) {
+    tierCounts[c.tier] = (tierCounts[c.tier] ?? 0) + 1;
+  }
 
   return {
     companyCount: companies.length,
     totalCapital: totalCapital(companies),
+    totalRevenue: totalRevenue(companies),
     totalFunding: totalFunding(companies),
     countryCount: unique(companies.map((c) => c.hqCountry)).length,
-    publicCount: companies.filter((c) => c.status === 'public').length,
-    privateCount: companies.filter((c) => c.status === 'private').length,
+    publicCount: companies.filter((c) => c.status === 'Public').length,
+    privateCount: companies.filter((c) => c.status === 'Private').length,
     medianFounded,
     topSector: sectorCounts.length > 0 ? { sector: sectorCounts[0].key, count: sectorCounts[0].count } : null,
+    tierCounts,
   };
 }

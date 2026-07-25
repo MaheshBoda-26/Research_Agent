@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 
-/* ──────────────────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════════
    Cyber-Intelligence Obsidian Design System
    Rich OKLCH Palette, Frosted Glassmorphism, Neon Glow Accents
-   ──────────────────────────────────────────────────────────────────*/
+   ══════════════════════════════════════════════════════════════════*/
 @theme {
   /* Ink ramp — crisp polar white to subtle slate */
   --color-ink-900: oklch(0.98 0.005 260);
@@ -46,9 +46,9 @@
   --color-cat-8: oklch(0.66 0.18 45);  /* Orange */
 
   /* Typography */
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Orbitron', monospace;
+  --font-sans: 'Exo 2', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Orbitron', monospace;
 
   /* Spacing scale */
   --spacing: 0.25rem;
@@ -73,50 +73,83 @@ h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
 }
 
-/* Glassmorphism panel utility */
+/* ── Glassmorphism Panels ── */
 .glass-panel {
-  background: rgba(22, 28, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(
+    135deg,
+    rgba(22, 28, 42, 0.6) 0%,
+    rgba(18, 22, 34, 0.45) 100%
+  );
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-panel-interactive {
-  background: rgba(22, 28, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(
+    135deg,
+    rgba(22, 28, 42, 0.6) 0%,
+    rgba(18, 22, 34, 0.45) 100%
+  );
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 250ms ease;
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(30, 38, 56, 0.85);
-  border-color: rgba(0, 229, 255, 0.3);
-  box-shadow: 0 8px 32px -4px rgba(0, 229, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 38, 56, 0.9) 0%,
+    rgba(24, 30, 48, 0.85) 100%
+  );
+  border-color: rgba(0, 229, 255, 0.25);
+  box-shadow:
+    0 12px 40px -8px rgba(0, 229, 255, 0.15),
+    0 4px 16px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
 }
 
-/* Glow Border & Badge FX */
+/* ── Glow Border & Badge FX ── */
 .glow-border-cyan {
-  box-shadow: 0 0 15px -2px oklch(0.72 0.19 220 / 0.3);
+  box-shadow:
+    0 0 20px -4px oklch(0.72 0.19 220 / 0.35),
+    inset 0 0 12px -6px oklch(0.72 0.19 220 / 0.15);
 }
 
 .glow-border-magenta {
-  box-shadow: 0 0 15px -2px oklch(0.68 0.24 315 / 0.3);
+  box-shadow:
+    0 0 20px -4px oklch(0.68 0.24 315 / 0.35),
+    inset 0 0 12px -6px oklch(0.68 0.24 315 / 0.15);
 }
 
 .glow-border-amber {
-  box-shadow: 0 0 15px -2px oklch(0.78 0.18 75 / 0.3);
+  box-shadow:
+    0 0 20px -4px oklch(0.78 0.18 75 / 0.35),
+    inset 0 0 12px -6px oklch(0.78 0.18 75 / 0.15);
 }
 
-/* Numbers alignment */
+.glow-border-emerald {
+  box-shadow:
+    0 0 20px -4px oklch(0.75 0.20 155 / 0.35),
+    inset 0 0 12px -6px oklch(0.75 0.20 155 / 0.15);
+}
+
+/* ── Numbers alignment ── */
 .tnum {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
 }
 
-/* Custom Cyber Scrollbar */
+/* ── Custom Cyber Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -127,38 +160,37 @@ h1, h2, h3, h4, .font-display {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
+  transition: background 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
+  background: oklch(0.72 0.19 220 / 0.6);
 }
 
-/* Focus ring */
+/* ── Focus ring ── */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid oklch(0.72 0.19 220 / 0.7);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Pulse animation */
+/* ── Pulse animation ── */
 @keyframes pulse-glow {
   0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
+    opacity: 0;
   }
   50% {
     opacity: 0.8;
-    transform: scale(1.05);
   }
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 3s infinite ease-in-out;
+  animation: pulse-glow 2.5s infinite ease-in-out;
 }
 
-/* Reduced motion */
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

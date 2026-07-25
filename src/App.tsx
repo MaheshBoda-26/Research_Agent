@@ -11,6 +11,8 @@ import { CompareDrawer } from './components/CompareDrawer';
 import { applyFilters, sortCompanies, useUrlFilters, type SortState } from './hooks/useFilters';
 import { computeKpis } from './lib/aggregate';
 import type { Company } from './types/company';
+import { AnimatedGridPattern } from './components/animations/AnimatedGridPattern';
+import LightPillar from './components/animations/LightPillar';
 
 function Dashboard() {
   const { filters, update, reset } = useUrlFilters();
@@ -43,32 +45,64 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink-700 selection:bg-accent selection:text-canvas relative overflow-hidden">
-      {/* Header Hero Section */}
-      <header className="relative border-b border-white/10 glass-panel sticky top-0 z-30">
+      {/* ── Futuristic Animated Background ── */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <LightPillar
+          topColor="#F97316"
+          bottomColor="#2563EB"
+          intensity={1.0}
+          rotationSpeed={0.2}
+          glowAmount={0.005}
+          pillarWidth={3.0}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={45}
+          interactive={false}
+          mixBlendMode="screen"
+        />
+      </div>
+      <AnimatedGridPattern 
+        className="text-accent/20"
+        numSquares={150} 
+        duration={5} 
+        width={80} 
+        height={80} 
+      />
+
+      {/* ── Header Hero Section ── */}
+      <header className="relative border-b border-white/8 glass-panel sticky top-0 z-30">
         <HeroCanvas />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fadeInDown">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-accent bg-accent-050 px-2.5 py-0.5 rounded-full border border-accent/30 flex items-center gap-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-mono font-bold text-accent bg-accent-050 px-2.5 py-1 rounded-full border border-accent/30 flex items-center gap-1.5 shadow-sm shadow-accent/10">
                   <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
                   Live Intelligence
                 </span>
-                <span className="text-xs text-ink-500 font-mono">Dataset 2026-07-01</span>
+                <span className="text-xs text-ink-500 font-mono bg-white/5 px-2 py-0.5 rounded-md">
+                  Dataset 2026-07-01
+                </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-ink-900 tracking-tight">
-                Top 100 AI Companies <span className="text-accent">&</span> Market Radar
+                Top 100 AI Companies{' '}
+                <span className="gradient-text">&amp;</span>{' '}
+                Market Radar
               </h1>
-              <p className="text-xs sm:text-sm text-ink-500 max-w-2xl">
-                Tracking market cap, revenue, funding, status, and sector breakdown for {companies.length} verified AI industry leaders.
+              <p className="text-xs sm:text-sm text-ink-500 max-w-2xl leading-relaxed">
+                Tracking market cap, revenue, funding, status, and sector breakdown for{' '}
+                <span className="font-mono font-semibold text-accent">{companies.length}</span>{' '}
+                verified AI industry leaders.
               </p>
             </div>
 
             {/* Quick Stat Pill Header */}
             <div className="flex items-center gap-3">
-              <div className="glass-panel px-4 py-2 rounded-xl text-right">
-                <span className="text-[10px] text-ink-500 uppercase tracking-wider block">Total Market Value</span>
-                <span className="text-sm font-bold font-mono text-accent">
+              <div className="glass-panel px-5 py-3 rounded-xl text-right glow-ring">
+                <span className="text-[10px] text-ink-500 uppercase tracking-wider block font-semibold">
+                  Total Market Value
+                </span>
+                <span className="text-base font-bold font-mono text-accent">
                   ${(kpis.totalCapital / 1e12).toFixed(2)}T
                 </span>
               </div>
@@ -77,11 +111,11 @@ function Dashboard() {
         </div>
       </header>
 
-      {/* Main Dashboard Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative z-10">
-        <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8">
+      {/* ── Main Dashboard Layout ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
+        <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-6">
           {/* Sidebar Filters */}
-          <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto hidden lg:block">
+          <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto hidden lg:block animate-fadeInUp" style={{ animationDelay: '100ms' }}>
             <FilterBar
               filters={filters}
               filteredCount={filteredCompanies.length}
@@ -103,23 +137,27 @@ function Dashboard() {
           </div>
 
           {/* Core Content Feed */}
-          <div className="space-y-8 mt-6 lg:mt-0">
+          <div className="space-y-6 mt-6 lg:mt-0">
             {/* KPI Cards Strip */}
             <KpiStrip kpis={kpis} />
 
             {/* Sector Analytics Grid */}
-            <SectorBar companies={filteredCompanies} />
+            <div className="animate-fadeInUp" style={{ animationDelay: '300ms' }}>
+              <SectorBar companies={filteredCompanies} />
+            </div>
 
             {/* Main Company Directory Table / Grid */}
-            <CompanyDirectory
-              companies={sortedCompanies}
-              sort={sort}
-              onSortChange={setSort}
-              onSelectCompany={setSelectedCompany}
-              comparingCompanies={comparingCompanies}
-              onToggleCompare={handleToggleCompare}
-              searchQuery={filters.query}
-            />
+            <div className="animate-fadeInUp" style={{ animationDelay: '400ms' }}>
+              <CompanyDirectory
+                companies={sortedCompanies}
+                sort={sort}
+                onSortChange={setSort}
+                onSelectCompany={setSelectedCompany}
+                comparingCompanies={comparingCompanies}
+                onToggleCompare={handleToggleCompare}
+                searchQuery={filters.query}
+              />
+            </div>
           </div>
         </div>
       </main>
@@ -141,14 +179,15 @@ function Dashboard() {
         onClear={() => setComparingCompanies([])}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 glass-panel mt-16 relative z-10">
+      {/* ── Footer ── */}
+      <footer className="border-t border-white/8 glass-panel mt-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-xs text-ink-500 flex flex-col md:flex-row items-center justify-between gap-4">
           <p>
             Data Sources: Yahoo Finance, SEC filings, Crunchbase, Bloomberg, Reuters. Valuations post-money estimates.
           </p>
-          <p className="font-mono text-ink-700">
-            Designed with <span className="text-accent">OKLCH Dark Theme</span> · React 19 + Tailwind v4 + Recharts
+          <p className="font-mono text-ink-700 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            Designed with <span className="text-accent font-semibold">OKLCH Dark Theme</span> · React 19 + Tailwind v4 + Recharts
           </p>
         </div>
       </footer>

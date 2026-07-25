@@ -61,7 +61,7 @@ export function FilterBar({
     (filters.status !== 'all' ? 1 : 0);
 
   return (
-    <div className="glass-panel rounded-2xl p-5 space-y-6">
+    <div className="glass-panel rounded-xl p-4 space-y-5 border border-white/10 bg-surface-1/40 shadow-xl relative z-20">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div className="flex items-center gap-2">
@@ -90,9 +90,9 @@ export function FilterBar({
 
       {/* Search Input */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-ink-500 block">Search Query</label>
+        <label className="text-[11px] font-bold tracking-wider uppercase text-ink-500 block">Search Query</label>
         <div className="relative">
-          <svg className="w-4 h-4 text-ink-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-ink-500 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -100,14 +100,17 @@ export function FilterBar({
             value={filters.query}
             onChange={(e) => onChange({ query: e.target.value })}
             placeholder="Search name, HQ, subsector..."
-            className="w-full bg-surface-2/60 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-ink-900 placeholder:text-ink-500 focus:border-accent focus:outline-none transition-colors"
+            className="w-full bg-surface-1/40 border border-white/10 rounded-md pl-8 pr-7 py-1.5 text-xs text-ink-900 placeholder:text-ink-500 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none transition-colors shadow-inner"
           />
           {filters.query && (
             <button
               onClick={() => onChange({ query: '' })}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-900 text-xs"
+              aria-label="Clear search query"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-900 text-xs focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none rounded-sm p-0.5"
             >
-              &times;
+              <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
             </button>
           )}
         </div>
@@ -115,7 +118,7 @@ export function FilterBar({
 
       {/* Sector Chips */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-ink-500 block">Sectors</label>
+        <label className="text-[11px] font-bold tracking-wider uppercase text-ink-500 block">Sectors</label>
         <div className="flex flex-wrap gap-1.5">
           {SECTORS.map((s) => {
             const isSelected = filters.sectors.includes(s);
@@ -123,10 +126,10 @@ export function FilterBar({
               <button
                 key={s}
                 onClick={() => onChange({ sectors: toggle(filters.sectors, s) })}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none border ${
                   isSelected
-                    ? 'bg-accent text-canvas shadow-md shadow-accent/20 font-semibold'
-                    : 'bg-surface-2/60 text-ink-500 hover:text-ink-900 border border-white/5'
+                    ? 'bg-accent/20 text-accent border-accent/40 shadow-[0_0_8px_rgba(59,130,246,0.15)] font-semibold'
+                    : 'bg-surface-1/50 text-ink-400 hover:text-ink-900 border-white/10 hover:border-white/20 hover:bg-surface-2'
                 }`}
               >
                 {s}
@@ -138,7 +141,7 @@ export function FilterBar({
 
       {/* Company Tier Chips */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-ink-500 block">Company Tier</label>
+        <label className="text-[11px] font-bold tracking-wider uppercase text-ink-500 block">Company Tier</label>
         <div className="flex flex-wrap gap-1.5">
           {TIERS.map((t) => {
             const isSelected = filters.tiers.includes(t.id);
@@ -146,10 +149,10 @@ export function FilterBar({
               <button
                 key={t.id}
                 onClick={() => onChange({ tiers: toggle(filters.tiers, t.id) })}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-neon-magenta focus-visible:outline-none border ${
                   isSelected
-                    ? 'bg-neon-magenta text-canvas shadow-md shadow-neon-magenta/20 font-semibold'
-                    : 'bg-surface-2/60 text-ink-500 hover:text-ink-900 border border-white/5'
+                    ? 'bg-neon-magenta/20 text-neon-magenta border-neon-magenta/40 shadow-[0_0_8px_rgba(236,72,153,0.15)] font-semibold'
+                    : 'bg-surface-1/50 text-ink-400 hover:text-ink-900 border-white/10 hover:border-white/20 hover:bg-surface-2'
                 }`}
               >
                 {t.label}
@@ -161,7 +164,7 @@ export function FilterBar({
 
       {/* Region Chips */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-ink-500 block">Global Region</label>
+        <label className="text-[11px] font-bold tracking-wider uppercase text-ink-500 block">Global Region</label>
         <div className="flex flex-wrap gap-1.5">
           {REGIONS.map((r) => {
             const isSelected = filters.regions.includes(r);
@@ -169,10 +172,10 @@ export function FilterBar({
               <button
                 key={r}
                 onClick={() => onChange({ regions: toggle(filters.regions, r) })}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-neon-emerald focus-visible:outline-none border ${
                   isSelected
-                    ? 'bg-neon-emerald text-canvas shadow-md shadow-neon-emerald/20 font-semibold'
-                    : 'bg-surface-2/60 text-ink-500 hover:text-ink-900 border border-white/5'
+                    ? 'bg-neon-emerald/20 text-neon-emerald border-neon-emerald/40 shadow-[0_0_8px_rgba(16,185,129,0.15)] font-semibold'
+                    : 'bg-surface-1/50 text-ink-400 hover:text-ink-900 border-white/10 hover:border-white/20 hover:bg-surface-2'
                 }`}
               >
                 {r}
@@ -184,16 +187,16 @@ export function FilterBar({
 
       {/* Status Filter Buttons */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-ink-500 block">Status</label>
-        <div className="flex gap-1.5">
+        <label className="text-[11px] font-bold tracking-wider uppercase text-ink-500 block">Status</label>
+        <div className="flex gap-1 bg-surface-1/40 p-1 rounded-lg border border-white/5">
           {STATUSES.map((st) => (
             <button
               key={st.id}
               onClick={() => onChange({ status: st.id })}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
                 filters.status === st.id
-                  ? 'bg-accent text-canvas font-semibold shadow-md shadow-accent/20'
-                  : 'bg-surface-2/60 text-ink-500 hover:text-ink-900 border border-white/5'
+                  ? 'bg-surface-3 text-accent font-semibold shadow-sm border border-white/10'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2/50 border border-transparent'
               }`}
             >
               {st.label}

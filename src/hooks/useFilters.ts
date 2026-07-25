@@ -67,8 +67,14 @@ export function sortCompanies(companies: Company[], sort: SortState): Company[] 
   const { field, dir } = sort;
   const factor = dir === 'asc' ? 1 : -1;
   return [...companies].sort((a, b) => {
-    const av = a[field as keyof Company];
-    const bv = b[field as keyof Company];
+    let av: string | number | null | undefined = a[field as keyof Company];
+    let bv: string | number | null | undefined = b[field as keyof Company];
+
+    if (field === 'revenueUSD') {
+      av = a.status === 'Public' ? (a.revenueUSD ?? 0) : (a.fundingRaisedUSD ?? 0);
+      bv = b.status === 'Public' ? (b.revenueUSD ?? 0) : (b.fundingRaisedUSD ?? 0);
+    }
+
     if (av === null && bv === null) return 0;
     if (av === null) return 1; // nulls sort last regardless of dir
     if (bv === null) return -1;

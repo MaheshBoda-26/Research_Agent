@@ -5,11 +5,17 @@ import { FilterBar } from './components/FilterBar';
 import { CompanyDirectory } from './components/CompanyDirectory';
 import { KpiStrip } from './components/KpiStrip';
 import { SectorBar } from './components/charts/SectorBar';
+import { HeroCanvas } from './components/HeroCanvas';
+import { CompanyDrawer } from './components/CompanyDrawer';
+import { CompareDrawer } from './components/CompareDrawer';
 import { applyFilters, sortCompanies, useUrlFilters, type SortState } from './hooks/useFilters';
 import { computeKpis } from './lib/aggregate';
+import type { Company } from './types/company';
 
 function Dashboard() {
   const { filters, update, reset } = useUrlFilters();
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [comparingCompanies, setComparingCompanies] = useState<Company[]>([]);
 
   const filteredCompanies = useMemo(() => applyFilters(companies, filters), [filters]);
 
@@ -22,30 +28,60 @@ function Dashboard() {
 
   const kpis = useMemo(() => computeKpis(filteredCompanies), [filteredCompanies]);
 
+  const handleToggleCompare = (company: Company) => {
+    setComparingCompanies((prev) => {
+      const exists = prev.some((c) => c.name === company.name);
+      if (exists) {
+        return prev.filter((c) => c.name !== company.name);
+      }
+      if (prev.length >= 4) {
+        return [...prev.slice(1), company];
+      }
+      return [...prev, company];
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-canvas">
-      {/* Header */}
-      <header className="border-b border-ink-300 bg-surface sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-ink-900">Fortune 500 & Big Tech Intelligence</h1>
-              <p className="text-sm text-ink-500 mt-0.5">
-                Interactive dashboard tracking {companies.length} companies across market cap, revenue, funding, and sector.
+    <div className="min-h-screen bg-canvas text-ink-700 selection:bg-accent selection:text-canvas relative overflow-hidden">
+      {/* Header Hero Section */}
+      <header className="relative border-b border-white/10 glass-panel sticky top-0 z-30">
+        <HeroCanvas />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-accent bg-accent-050 px-2.5 py-0.5 rounded-full border border-accent/30 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
+                  Live Intelligence
+                </span>
+                <span className="text-xs text-ink-500 font-mono">Dataset 2026-07-01</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-ink-900 tracking-tight">
+                Top 100 AI Companies <span className="text-accent">&</span> Market Radar
+              </h1>
+              <p className="text-xs sm:text-sm text-ink-500 max-w-2xl">
+                Tracking market cap, revenue, funding, status, and sector breakdown for {companies.length} verified AI industry leaders.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-ink-500">
-              <span>Data as of 2026-07-01</span>
+
+            {/* Quick Stat Pill Header */}
+            <div className="flex items-center gap-3">
+              <div className="glass-panel px-4 py-2 rounded-xl text-right">
+                <span className="text-[10px] text-ink-500 uppercase tracking-wider block">Total Market Value</span>
+                <span className="text-sm font-bold font-mono text-accent">
+                  ${(kpis.totalCapital / 1e12).toFixed(2)}T
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-6">
-          {/* Sidebar - Filters */}
-          <aside className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto hidden lg:block">
+      {/* Main Dashboard Layout */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative z-10">
+        <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8">
+          {/* Sidebar Filters */}
+          <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto hidden lg:block">
             <FilterBar
               filters={filters}
               filteredCount={filteredCompanies.length}
@@ -55,8 +91,8 @@ function Dashboard() {
             />
           </aside>
 
-          {/* Mobile Filters */}
-          <div className="lg:hidden mb-6">
+          {/* Mobile Filter Collapsible */}
+          <div className="lg:hidden">
             <FilterBar
               filters={filters}
               filteredCount={filteredCompanies.length}
@@ -66,56 +102,53 @@ function Dashboard() {
             />
           </div>
 
-          {/* Content Area */}
-          <div className="space-y-6">
-            {/* KPI Strip */}
+          {/* Core Content Feed */}
+          <div className="space-y-8 mt-6 lg:mt-0">
+            {/* KPI Cards Strip */}
             <KpiStrip kpis={kpis} />
 
-            {/* Charts Row */}
-            <div className="lg:grid lg:grid-cols-2 lg:gap-6">
-              <SectorBar companies={filteredCompanies} />
-              <div className="bg-surface border border-ink-300 rounded-lg p-5">
-                <h2 className="text-sm font-semibold text-ink-900 mb-3">Sector Breakdown</h2>
-                <p className="text-xs text-ink-500 mb-4">
-                  {filteredCompanies.length} companies across {new Set(filteredCompanies.map(c => c.sector)).size} sectors.
-                </p>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {Array.from(
-                    filteredCompanies.reduce((acc, c) => {
-                      acc.set(c.sector, (acc.get(c.sector) ?? 0) + 1);
-                      return acc;
-                    }, new Map<string, number>())
-                  )
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([sector, count]) => (
-                      <div key={sector} className="flex items-center justify-between text-sm">
-                        <span className="text-ink-700">{sector}</span>
-                        <span className="tnum text-ink-500 font-medium">{count}</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
+            {/* Sector Analytics Grid */}
+            <SectorBar companies={filteredCompanies} />
 
-            {/* Company Directory */}
+            {/* Main Company Directory Table / Grid */}
             <CompanyDirectory
               companies={sortedCompanies}
               sort={sort}
               onSortChange={setSort}
+              onSelectCompany={setSelectedCompany}
+              comparingCompanies={comparingCompanies}
+              onToggleCompare={handleToggleCompare}
+              searchQuery={filters.query}
             />
           </div>
         </div>
       </main>
 
+      {/* Company Detail Drawer */}
+      <CompanyDrawer
+        company={selectedCompany}
+        onClose={() => setSelectedCompany(null)}
+        onCompareToggle={handleToggleCompare}
+        isComparing={
+          selectedCompany ? comparingCompanies.some((c) => c.name === selectedCompany.name) : false
+        }
+      />
+
+      {/* Floating Comparison Drawer */}
+      <CompareDrawer
+        comparingCompanies={comparingCompanies}
+        onRemove={(name) => setComparingCompanies((prev) => prev.filter((c) => c.name !== name))}
+        onClear={() => setComparingCompanies([])}
+      />
+
       {/* Footer */}
-      <footer className="border-t border-ink-300 bg-surface mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs text-ink-500">
+      <footer className="border-t border-white/10 glass-panel mt-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-xs text-ink-500 flex flex-col md:flex-row items-center justify-between gap-4">
           <p>
-            Data sources: Public market data (Yahoo Finance, companiesmarketcap.com), SEC filings, Crunchbase, Bloomberg, Reuters, company press releases.
-            Valuations for private companies are estimates based on latest funding rounds.
+            Data Sources: Yahoo Finance, SEC filings, Crunchbase, Bloomberg, Reuters. Valuations post-money estimates.
           </p>
-          <p className="mt-2">
-            Built with React 19, TypeScript, Vite, Tailwind CSS v4, Recharts, Oxlint.
+          <p className="font-mono text-ink-700">
+            Designed with <span className="text-accent">OKLCH Dark Theme</span> · React 19 + Tailwind v4 + Recharts
           </p>
         </div>
       </footer>

@@ -1,146 +1,150 @@
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
-  Bar,
   BarChart,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
+  Bar,
   XAxis,
   YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
 } from 'recharts';
-import type { Company } from '../../data/companies';
-import { formatNumber, formatCompactUSD } from '../../lib/format';
-import { sectorColors } from '../../lib/colors';
-import { sumBy } from '../../lib/aggregate';
+import type { Company } from '../../types/company';
+import { formatCompactUSD } from '../../lib/format';
 
-interface Props {
+interface SectorBarProps {
   companies: Company[];
 }
 
-type Metric = 'count' | 'revenue' | 'marketCap';
+type MetricType = 'count' | 'marketCap' | 'revenue' | 'funding';
 
-interface SectorRow {
-  sector: string;
-  value: number;
-}
+const CATEGORICAL_COLORS = [
+  'oklch(0.72 0.19 220)', // Cyan
+  'oklch(0.68 0.24 315)', // Magenta
+  'oklch(0.75 0.20 155)', // Emerald
+  'oklch(0.78 0.18 75)',  // Amber
+  'oklch(0.65 0.22 285)', // Violet
+  'oklch(0.72 0.18 190)', // Azure
+  'oklch(0.70 0.22 340)', // Rose
+  'oklch(0.74 0.19 130)', // Lime
+  'oklch(0.66 0.18 45)',  // Orange
+];
 
-const TICK = { fill: 'var(--color-ink-500)', fontSize: 11 };
-const AXIS_STROKE = 'var(--color-ink-300)';
-const TOOLTIP_STYLE = {
-  background: 'var(--color-surface)',
-  border: '1px solid var(--color-ink-300)',
-  borderRadius: 6,
-  fontSize: 12,
-  color: 'var(--color-ink-700)',
-} as const;
+export function SectorBar({ companies }: SectorBarProps) {
+  const [metric, setMetric] = useState<MetricType>('marketCap');
 
-const METRIC_LABELS: Record<Metric, string> = {
-  count: 'Company Count',
-  revenue: 'Total Revenue',
-  marketCap: 'Market Cap / Valuation',
-};
+  const chartData = useMemo(() => {
+    const map = new Map<string, { count: number; marketCap: number; revenue: number; funding: number }>();
 
-const METRIC_FORMATTERS: Record<Metric, (val: number) => string> = {
-  count: (val) => `${formatNumber(val)} companies`,
-  revenue: (val) => formatCompactUSD(val),
-  marketCap: (val) => formatCompactUSD(val),
-};
-
-export function SectorBar({ companies }: Props) {
-  const [metric, setMetric] = useState<Metric>('count');
-
-  const data: SectorRow[] = useMemo(() => {
-    if (metric === 'count') {
-      const counts = new Map<string, number>();
-      for (const c of companies) {
-        counts.set(c.sector, (counts.get(c.sector) ?? 0) + 1);
-      }
-      return Array.from(counts, ([sector, count]) => ({ sector, value: count }))
-        .sort((a, b) => b.value - a.value);
+    for (const c of companies) {
+      const current = map.get(c.sector) ?? { count: 0, marketCap: 0, revenue: 0, funding: 0 };
+      current.count += 1;
+      current.marketCap += c.valuationOrMarketCapUSD || 0;
+      current.revenue += c.revenueUSD || 0;
+      current.funding += c.fundingRaisedUSD || 0;
+      map.set(c.sector, current);
     }
-    if (metric === 'revenue') {
-      return sumBy(companies, (c) => c.sector, (c) => c.revenueUSD)
-        .map(({ key, total }) => ({ sector: key, value: total }))
-        .sort((a, b) => b.value - a.value);
-    }
-    // marketCap
-    return sumBy(companies, (c) => c.sector, (c) => c.valuationOrMarketCapUSD)
-      .map(({ key, total }) => ({ sector: key, value: total }))
-      .sort((a, b) => b.value - a.value);
+
+    return Array.from(map.entries())
+      .map(([sector, values]) => ({
+        sector,
+        ...values,
+      }))
+      .sort((a, b) => b[metric] - a[metric]);
   }, [companies, metric]);
 
-  const palette = sectorColors(data.length);
+  const getMetricLabel = (m: MetricType) => {
+    switch (m) {
+      case 'count': return 'Firm Count';
+      case 'marketCap': return 'Market Cap / Val';
+      case 'revenue': return 'Total Revenue';
+      case 'funding': return 'Venture Funding';
+    }
+  };
+
+  const formatTooltipValue = (value: number) => {
+    if (metric === 'count') return `${value} companies`;
+    return formatCompactUSD(value);
+  };
 
   return (
-    <section aria-label={`Companies by sector - ${METRIC_LABELS[metric]}`}>
-      <div className="bg-surface border border-ink-300 rounded-lg p-5 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-ink-900 mb-1">
-              Sector Distribution
-            </h2>
-            <p className="text-xs text-ink-500">
-              {METRIC_LABELS[metric]} across market sectors.
-            </p>
-          </div>
-          <div className="flex gap-1" role="group" aria-label="Chart metric">
-            {(['count', 'revenue', 'marketCap'] as Metric[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMetric(m)}
-                aria-pressed={metric === m}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  metric === m
-                    ? 'bg-accent text-white'
-                    : 'bg-surface text-ink-700 hover:bg-surface-2 border border-ink-300'
-                }`}
-              >
-                {m === 'count' ? 'Count' : m === 'revenue' ? 'Revenue' : 'Mkt Cap'}
-              </button>
-            ))}
-          </div>
+    <div className="glass-panel rounded-2xl p-6 space-y-4">
+      {/* Chart Header & Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-base font-bold font-display text-ink-900">Sector Distribution</h2>
+          <p className="text-xs text-ink-500">
+            Breakdown across {chartData.length} active sectors.
+          </p>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 4, right: 32, bottom: 4, left: 8 }}
-          >
+
+        {/* Metric Switcher */}
+        <div className="flex items-center gap-1 bg-surface-2/60 p-1 rounded-xl border border-white/5">
+          {(['marketCap', 'revenue', 'funding', 'count'] as MetricType[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMetric(m)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                metric === m
+                  ? 'bg-accent text-canvas font-semibold shadow-md shadow-accent/20'
+                  : 'text-ink-500 hover:text-ink-900'
+              }`}
+            >
+              {getMetricLabel(m)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Recharts Bar Container */}
+      <div className="h-64 w-full pt-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 25 }}>
             <XAxis
-              type="number"
-              stroke={AXIS_STROKE}
-              tick={TICK}
+              dataKey="sector"
+              tick={{ fill: 'oklch(0.68 0.025 260)', fontSize: 10 }}
+              interval={0}
+              angle={-25}
+              textAnchor="end"
+              axisLine={false}
               tickLine={false}
-              axisLine={{ stroke: AXIS_STROKE }}
-              allowDecimals={metric !== 'count'}
             />
             <YAxis
-              type="category"
-              dataKey="sector"
-              stroke={AXIS_STROKE}
-              tick={TICK}
+              tick={{ fill: 'oklch(0.68 0.025 260)', fontSize: 10 }}
+              tickFormatter={(v) => (metric === 'count' ? v : formatCompactUSD(v))}
+              axisLine={false}
               tickLine={false}
-              axisLine={{ stroke: AXIS_STROKE }}
-              width={130}
+              width={65}
             />
             <Tooltip
-              cursor={{ fill: 'var(--color-surface-2)' }}
-              contentStyle={TOOLTIP_STYLE}
-              labelStyle={{ color: 'var(--color-ink-900)' }}
-              formatter={(value) => [
-                METRIC_FORMATTERS[metric](Number(value)),
-                METRIC_LABELS[metric],
-              ]}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="glass-panel p-3 rounded-xl border border-white/10 shadow-2xl text-xs space-y-1">
+                      <div className="font-bold text-ink-900">{data.sector}</div>
+                      <div className="text-accent font-mono">
+                        {getMetricLabel(metric)}: <span className="font-bold">{formatTooltipValue(data[metric])}</span>
+                      </div>
+                      <div className="text-ink-500">
+                        {data.count} firms in dataset
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
-            <Bar dataKey="value" radius={[0, 3, 3, 0]} maxBarSize={26}>
-              {data.map((_, i) => (
-                <Cell key={i} fill={palette[i % palette.length]} />
+            <Bar dataKey={metric} radius={[6, 6, 0, 0]}>
+              {chartData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={CATEGORICAL_COLORS[index % CATEGORICAL_COLORS.length]}
+                />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </section>
+    </div>
   );
 }

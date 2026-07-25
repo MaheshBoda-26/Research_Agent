@@ -1,395 +1,328 @@
-import { useEffect, useState } from 'react';
-import type { Company } from '../data/companies';
-import type { SortState, SortField, SortDir } from '../hooks/useFilters';
-import { formatCompactUSD, formatCompact, formatYear } from '../lib/format';
+import { useState, useMemo } from 'react';
+import type { Company } from '../types/company';
+import type { SortState } from '../hooks/useFilters';
+import { formatCompactUSD, formatCompact } from '../lib/format';
 
-interface Props {
+interface CompanyDirectoryProps {
   companies: Company[];
   sort: SortState;
-  onSortChange: (s: SortState) => void;
+  onSortChange: (sort: SortState) => void;
+  onSelectCompany: (company: Company) => void;
+  comparingCompanies: Company[];
+  onToggleCompare: (company: Company) => void;
+  searchQuery?: string;
 }
 
-const PAGE_SIZE = 15;
-
-/** Default direction when a column is clicked for the first time. */
-const DEFAULT_DIR: Record<SortField, SortDir> = {
-  rank: 'asc',
-  name: 'asc',
-  sector: 'asc',
-  founded: 'desc',
-  valuationOrMarketCapUSD: 'desc',
-  revenueUSD: 'desc',
-  fundingRaisedUSD: 'desc',
-  employees: 'desc',
-};
-
-type PageToken = number | 'gap';
-
-/** Compact page list with ellipses for large totals. */
-function getPageList(current: number, total: number): PageToken[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  const pages: PageToken[] = [1];
-  const start = Math.max(2, current - 1);
-  const end = Math.min(total - 1, current + 1);
-  if (start > 2) pages.push('gap');
-  for (let i = start; i <= end; i++) pages.push(i);
-  if (end < total - 1) pages.push('gap');
-  pages.push(total);
-  return pages;
-}
-
-function SortHeader({
-  field,
-  label,
+export function CompanyDirectory({
+  companies,
   sort,
   onSortChange,
-}: {
-  field: SortField;
-  label: string;
-  sort: SortState;
-  onSortChange: (s: SortState) => void;
-}) {
-  const active = sort.field === field;
-  const ariaSort: 'ascending' | 'descending' | 'none' = active
-    ? sort.dir === 'asc'
-      ? 'ascending'
-      : 'descending'
-    : 'none';
+  onSelectCompany,
+  comparingCompanies,
+  onToggleCompare,
+  searchQuery = '',
+}: CompanyDirectoryProps) {
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
-  const handleClick = () => {
-    if (active) {
+  const totalPages = Math.ceil(companies.length / pageSize) || 1;
+  const paginatedCompanies = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return companies.slice(start, start + pageSize);
+  }, [companies, currentPage, pageSize]);
+
+  const handleSort = (field: SortState['field']) => {
+    if (sort.field === field) {
       onSortChange({ field, dir: sort.dir === 'asc' ? 'desc' : 'asc' });
     } else {
-      onSortChange({ field, dir: DEFAULT_DIR[field] });
+      onSortChange({ field, dir: 'asc' });
     }
   };
 
-  return (
-    <th
-      scope="col"
-      aria-sort={ariaSort}
-      className="bg-surface-2 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-500"
-    >
-      <button
-        type="button"
-        onClick={handleClick}
-        className="inline-flex items-center gap-1 -mx-0.5 px-0.5 hover:text-ink-700"
-      >
-        <span>{label}</span>
-        {active && (
-          <span aria-hidden="true" className="text-[10px] leading-none">
-            {sort.dir === 'asc' ? '▲' : '▼'}
-          </span>
+  const getSortIcon = (field: SortState['field']) => {
+    if (sort.field !== field) return <span className="opacity-20 ml-1">↕</span>;
+    return <span className="text-accent ml-1 font-bold">{sort.dir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <mark key={i} className="bg-accent/30 text-accent font-semibold px-0.5 rounded">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
         )}
-      </button>
-    </th>
-  );
-}
+      </span>
+    );
+  };
 
-function StatusBadge({ status }: { status: Company['status'] }) {
-  if (status === 'Public') {
-    return (
-      <span className="inline-flex items-center rounded-full bg-[var(--color-accent-050)] px-2 py-0.5 text-xs font-medium text-accent">
-        Public
-      </span>
-    );
-  }
-  if (status === 'Private') {
-    return (
-      <span className="inline-flex items-center rounded-full bg-[oklch(0.95_0.05_35)] px-2 py-0.5 text-xs font-medium text-[oklch(0.42_0.15_35)]">
-        Private
-      </span>
-    );
-  }
   return (
-    <span className="inline-flex items-center rounded-full bg-[oklch(0.9_0.02_45)] px-2 py-0.5 text-xs font-medium text-[oklch(0.5_0.1_45)]">
-      {status}
-    </span>
-  );
-}
-
-function MoneyCell({ company }: { company: Company }) {
-  if (company.status === 'Public') {
-    return (
-      <div>
-        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationOrMarketCapUSD)}</div>
-        <div className="text-[11px] text-ink-500">Mkt cap</div>
-        <div className="tnum text-ink-700">{formatCompactUSD(company.revenueUSD)}</div>
-        <div className="text-[11px] text-ink-500">Revenue</div>
-      </div>
-    );
-  }
-  // Private: prefer funding raised, fall back to a valuation estimate, else dash.
-  if (company.fundingRaisedUSD !== null) {
-    return (
-      <div>
-        <div className="tnum text-ink-900">{formatCompactUSD(company.fundingRaisedUSD)}</div>
-        <div className="text-[11px] text-ink-500">Funding</div>
-      </div>
-    );
-  }
-  if (company.valuationOrMarketCapUSD !== null) {
-    return (
-      <div>
-        <div className="tnum text-ink-900">{formatCompactUSD(company.valuationOrMarketCapUSD)}</div>
-        <div className="text-[11px] text-ink-500">Est. val.</div>
-      </div>
-    );
-  }
-  return <span className="tnum text-ink-500">—</span>;
-}
-
-export function CompanyDirectory({ companies, sort, onSortChange }: Props) {
-  const [page, setPage] = useState(1);
-  const [expanded, setExpanded] = useState<number | null>(null);
-
-  // Reset paging/expansion when the filtered set changes.
-  useEffect(() => {
-    setPage(1);
-    setExpanded(null);
-  }, [companies.length]);
-
-  if (companies.length === 0) {
-    return (
-      <section aria-label="Company directory">
-        <div className="bg-surface border border-ink-300 rounded-lg overflow-hidden">
-          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              className="text-ink-300"
-            >
-              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
-              <path
-                d="M20 20l-3.5-3.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            <p className="mt-3 text-sm text-ink-500">No companies match your filters.</p>
-          </div>
+    <div className="glass-panel rounded-2xl p-6 space-y-6">
+      {/* Top Header & View Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
+        <div>
+          <h2 className="text-lg font-bold font-display text-ink-900 flex items-center gap-2">
+            Company Directory
+            <span className="text-xs font-mono font-normal text-accent bg-accent-050 px-2 py-0.5 rounded-full border border-accent/20">
+              {companies.length} entries
+            </span>
+          </h2>
+          <p className="text-xs text-ink-500 mt-0.5">
+            Click any row to inspect details or check the box to compare.
+          </p>
         </div>
-      </section>
-    );
-  }
 
-  const totalPages = Math.max(1, Math.ceil(companies.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const startIdx = (safePage - 1) * PAGE_SIZE;
-  const endIdx = Math.min(startIdx + PAGE_SIZE, companies.length);
-  const pageRows = companies.slice(startIdx, startIdx + PAGE_SIZE);
-  const pageList = getPageList(safePage, totalPages);
+        {/* View Mode & Page Size Selector */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-surface-2/60 p-1 rounded-xl border border-white/5">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+                viewMode === 'table' ? 'bg-accent text-canvas shadow' : 'text-ink-500 hover:text-ink-900'
+              }`}
+              title="Table View"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-1.5 rounded-lg text-xs font-medium transition-all ${
+                viewMode === 'cards' ? 'bg-accent text-canvas shadow' : 'text-ink-500 hover:text-ink-900'
+              }`}
+              title="Cards Grid View"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+          </div>
 
-  return (
-    <section aria-label="Company directory">
-      <div className="bg-surface border border-ink-300 rounded-lg overflow-hidden">
-        <table className="w-full border-collapse">
-          <caption className="sr-only">
-            Top 100 AI companies directory, sortable and paginated
-          </caption>
-          <thead>
-            <tr>
-              <SortHeader field="rank" label="#" sort={sort} onSortChange={onSortChange} />
-              <SortHeader field="name" label="Company" sort={sort} onSortChange={onSortChange} />
-              <SortHeader field="sector" label="Sector" sort={sort} onSortChange={onSortChange} />
-              <th
-                scope="col"
-                className="bg-surface-2 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-500"
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="bg-surface-2/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-ink-900 focus:outline-none focus:border-accent cursor-pointer"
+          >
+            <option value={15} className="bg-surface">15 / page</option>
+            <option value={25} className="bg-surface">25 / page</option>
+            <option value={50} className="bg-surface">50 / page</option>
+            <option value={100} className="bg-surface">100 / page</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Directory Content */}
+      {companies.length === 0 ? (
+        <div className="py-12 text-center space-y-3">
+          <div className="text-3xl">🔍</div>
+          <h3 className="text-base font-semibold text-ink-900">No matching companies found</h3>
+          <p className="text-xs text-ink-500">Try adjusting your search queries or filter selections.</p>
+        </div>
+      ) : viewMode === 'table' ? (
+        /* Dense Table View */
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-white/10 text-ink-500 font-semibold uppercase tracking-wider">
+                <th className="p-3 w-10 text-center">Compare</th>
+                <th className="p-3 cursor-pointer hover:text-ink-900" onClick={() => handleSort('rank')}>
+                  Rank {getSortIcon('rank')}
+                </th>
+                <th className="p-3 cursor-pointer hover:text-ink-900" onClick={() => handleSort('name')}>
+                  Company {getSortIcon('name')}
+                </th>
+                <th className="p-3 cursor-pointer hover:text-ink-900" onClick={() => handleSort('sector')}>
+                  Sector {getSortIcon('sector')}
+                </th>
+                <th className="p-3 cursor-pointer hover:text-ink-900 text-right" onClick={() => handleSort('valuationOrMarketCapUSD')}>
+                  Market Cap / Val {getSortIcon('valuationOrMarketCapUSD')}
+                </th>
+                <th className="p-3 cursor-pointer hover:text-ink-900 text-right" onClick={() => handleSort('revenueUSD')}>
+                  Revenue / Funding {getSortIcon('revenueUSD')}
+                </th>
+                <th className="p-3 cursor-pointer hover:text-ink-900 text-right" onClick={() => handleSort('employees')}>
+                  Employees {getSortIcon('employees')}
+                </th>
+                <th className="p-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 font-sans">
+              {paginatedCompanies.map((c) => {
+                const isComparing = comparingCompanies.some((item) => item.name === c.name);
+                const isPublic = c.status === 'Public';
+
+                return (
+                  <tr
+                    key={c.name}
+                    className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+                    onClick={() => onSelectCompany(c)}
+                  >
+                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isComparing}
+                        onChange={() => onToggleCompare(c)}
+                        className="rounded accent-accent cursor-pointer w-4 h-4"
+                      />
+                    </td>
+                    <td className="p-3 font-mono font-semibold text-accent">#{c.rank}</td>
+                    <td className="p-3 font-medium text-ink-900 group-hover:text-accent transition-colors">
+                      <div className="font-bold text-sm">{highlightMatch(c.name, searchQuery)}</div>
+                      <div className="text-[11px] text-ink-500 truncate max-w-xs">{c.oneLineDescription}</div>
+                    </td>
+                    <td className="p-3 text-ink-700">
+                      <div className="font-medium">{c.sector}</div>
+                      <div className="text-[11px] text-ink-500">{c.subsector}</div>
+                    </td>
+                    <td className="p-3 text-right tnum font-bold text-accent">
+                      {formatCompactUSD(c.valuationOrMarketCapUSD)}
+                    </td>
+                    <td className="p-3 text-right tnum text-ink-700">
+                      {isPublic ? formatCompactUSD(c.revenueUSD) : formatCompactUSD(c.fundingRaisedUSD)}
+                    </td>
+                    <td className="p-3 text-right tnum text-ink-500">
+                      {formatCompact(c.employees)}
+                    </td>
+                    <td className="p-3 text-center">
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          isPublic
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}
+                      >
+                        {c.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Visual Card Grid View */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedCompanies.map((c) => {
+            const isComparing = comparingCompanies.some((item) => item.name === c.name);
+            const isPublic = c.status === 'Public';
+
+            return (
+              <div
+                key={c.name}
+                onClick={() => onSelectCompany(c)}
+                className="glass-panel-interactive rounded-xl p-4 flex flex-col justify-between space-y-3 cursor-pointer group"
               >
-                HQ
-              </th>
-              <SortHeader field="founded" label="Founded" sort={sort} onSortChange={onSortChange} />
-              <SortHeader
-                field="valuationOrMarketCapUSD"
-                label="Valuation"
-                sort={sort}
-                onSortChange={onSortChange}
-              />
-              <SortHeader
-                field="revenueUSD"
-                label="Revenue"
-                sort={sort}
-                onSortChange={onSortChange}
-              />
-              <SortHeader
-                field="employees"
-                label="Employees"
-                sort={sort}
-                onSortChange={onSortChange}
-              />
-              <th
-                scope="col"
-                className="bg-surface-2 px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-ink-500"
-              >
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.map((c) => {
-              const rank = c.rank ?? 0;
-              const isOpen = expanded === rank;
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold text-accent bg-accent-050 px-2 py-0.5 rounded">
+                      #{c.rank}
+                    </span>
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isComparing}
+                        onChange={() => onToggleCompare(c)}
+                        className="rounded accent-accent cursor-pointer"
+                      />
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          isPublic
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}
+                      >
+                        {c.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold font-display text-ink-900 group-hover:text-accent transition-colors">
+                      {highlightMatch(c.name, searchQuery)}
+                    </h3>
+                    <p className="text-xs text-ink-500 font-medium">{c.sector} · {c.subsector}</p>
+                  </div>
+
+                  <p className="text-xs text-ink-700 line-clamp-2">{c.oneLineDescription}</p>
+                </div>
+
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] text-ink-500 block">Valuation / Cap</span>
+                    <span className="font-bold font-mono text-accent">{formatCompactUSD(c.valuationOrMarketCapUSD)}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-ink-500 block">HQ</span>
+                    <span className="font-medium text-ink-900">{c.hqCity}, {c.hqCountry}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-white/10 text-xs text-ink-500">
+          <div>
+            Showing <span className="font-mono text-ink-900">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+            <span className="font-mono text-ink-900">{Math.min(currentPage * pageSize, companies.length)}</span> of{' '}
+            <span className="font-mono text-accent font-bold">{companies.length}</span> companies
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-lg bg-surface-2/60 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum = i + 1;
+              if (totalPages > 5 && currentPage > 3) {
+                pageNum = currentPage - 3 + i;
+                if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+              }
               return (
-                <BodyRows
-                  key={rank}
-                  company={c}
-                  isOpen={isOpen}
-                  onToggle={() => setExpanded(isOpen ? null : rank)}
-                />
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg font-mono font-medium transition-all ${
+                    currentPage === pageNum
+                      ? 'bg-accent text-canvas font-bold shadow'
+                      : 'bg-surface-2/60 text-ink-500 hover:text-ink-900 border border-white/5'
+                  }`}
+                >
+                  {pageNum}
+                </button>
               );
             })}
-          </tbody>
-        </table>
 
-        <div className="flex items-center justify-between px-4 py-3 border-t border-ink-300 text-sm">
-          <span className="text-ink-500 tnum">
-            Showing {startIdx + 1}–{endIdx} of {companies.length}
-          </span>
-          <div className="flex items-center gap-1">
             <button
-              type="button"
-              onClick={() => setPage(safePage - 1)}
-              disabled={safePage === 1}
-              aria-label="Previous page"
-              className="px-3 py-1.5 rounded border border-ink-300 hover:bg-surface-2 disabled:opacity-40 disabled:hover:bg-transparent"
-            >
-              Prev
-            </button>
-            {pageList.map((token, i) =>
-              token === 'gap' ? (
-                <span key={`gap-${i}`} className="px-1 text-ink-500" aria-hidden="true">
-                  …
-                </span>
-              ) : (
-                <button
-                  key={token}
-                  type="button"
-                  onClick={() => setPage(token)}
-                  aria-current={token === safePage ? 'page' : undefined}
-                  className={
-                    token === safePage
-                      ? 'min-w-[2rem] px-2 py-1.5 rounded border border-accent bg-accent text-white font-medium'
-                      : 'min-w-[2rem] px-2 py-1.5 rounded border border-ink-300 hover:bg-surface-2'
-                  }
-                >
-                  {token}
-                </button>
-              ),
-            )}
-            <button
-              type="button"
-              onClick={() => setPage(safePage + 1)}
-              disabled={safePage === totalPages}
-              aria-label="Next page"
-              className="px-3 py-1.5 rounded border border-ink-300 hover:bg-surface-2 disabled:opacity-40 disabled:hover:bg-transparent"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-lg bg-surface-2/60 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
               Next
             </button>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-/** A data row plus its conditional expanded detail row. */
-function BodyRows({
-  company: c,
-  isOpen,
-  onToggle,
-}: {
-  company: Company;
-  isOpen: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <>
-      <tr className="border-t border-ink-300 hover:bg-surface-2">
-        <td className="px-4 py-3 text-sm">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={isOpen}
-              aria-label={`Toggle details for ${c.name}`}
-              className="inline-flex items-center justify-center rounded p-0.5 text-ink-500 hover:bg-surface hover:text-ink-700"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 20 20"
-                fill="none"
-                aria-hidden="true"
-                className={isOpen ? 'rotate-90' : ''}
-                style={{ transition: 'transform 120ms ease' }}
-              >
-                <path
-                  d="M7 5l6 5-6 5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <span className="tnum text-ink-500">{c.rank}</span>
-          </div>
-        </td>
-        <td className="px-4 py-3 text-sm">
-          <div className="font-medium text-ink-900">{c.name}</div>
-          <div className="text-xs text-ink-500">{c.subsector}</div>
-        </td>
-        <td className="px-4 py-3 text-sm text-ink-700">{c.sector}</td>
-        <td className="px-4 py-3 text-sm text-ink-700">
-          <div>{c.hqCity}</div>
-          <div className="text-xs text-ink-500">{c.hqCountry}</div>
-        </td>
-        <td className="px-4 py-3 text-sm tnum text-ink-700">{formatYear(c.founded)}</td>
-        <td className="px-4 py-3 text-sm">
-          <MoneyCell company={c} />
-        </td>
-        <td className="px-4 py-3 text-sm tnum text-ink-700">{formatCompact(c.employees)}</td>
-        <td className="px-4 py-3 text-sm">
-          <StatusBadge status={c.status} />
-        </td>
-      </tr>
-      {isOpen && (
-              <tr className="border-t border-ink-300 bg-surface-2">
-                <td colSpan={9} className="px-4 py-4">
-                  <div className="space-y-2 text-sm">
-                    <p className="text-ink-700">{c.oneLineDescription}</p>
-                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-500">
-                      <span>
-                        Website:{' '}
-                        <a
-                          href={c.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-accent hover:text-accent-700 underline"
-                        >
-                          {c.website.replace(/^https?:\/\//, '')}
-                        </a>
-                      </span>
-                      {c.ticker && (
-                        <span>
-                          Ticker:{' '}
-                          <span className="tnum text-ink-700">{c.ticker}</span>
-                        </span>
-                      )}
-                      <span>Tier: <span className="text-ink-700 font-medium">{c.tier}</span></span>
-                      {c.revenueUSD !== null && (
-                        <span>Revenue: <span className="tnum text-ink-700">{formatCompactUSD(c.revenueUSD)}</span></span>
-                      )}
-                      <span>Source: {c.dataSource}</span>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            )}
-    </>
+      )}
+    </div>
   );
 }

@@ -1,98 +1,166 @@
 @import 'tailwindcss';
 
 /* ──────────────────────────────────────────────────────────────────
-   Design tokens — analyst-grade market intelligence surface.
-   Light, restrained-neutral, high-readability. One signal accent.
-   OKLCH throughout. Explicitly NOT the AI-purple cliché.
+   Cyber-Intelligence Obsidian Design System
+   Rich OKLCH Palette, Frosted Glassmorphism, Neon Glow Accents
    ──────────────────────────────────────────────────────────────────*/
 @theme {
-  /* Ink ramp — the bulk of text sits here. Warm-neutral, not beige. */
-  --color-ink-900: oklch(0.22 0.015 260);
-  /* headings */
-  --color-ink-700: oklch(0.38 0.012 260);
-  /* body */
-  --color-ink-500: oklch(0.55 0.01 260);
-  /* secondary (still ≥4.5:1 on canvas) */
-  --color-ink-300: oklch(0.72 0.008 260);
-  /* borders, hairlines */
+  /* Ink ramp — crisp polar white to subtle slate */
+  --color-ink-900: oklch(0.98 0.005 260);
+  --color-ink-700: oklch(0.88 0.015 260);
+  --color-ink-500: oklch(0.68 0.025 260);
+  --color-ink-300: oklch(0.38 0.035 260);
+  --color-ink-100: oklch(0.24 0.03 260);
 
-  /* Surface ramp — true off-whites toward the ink hue, not warm cream. */
-  --color-canvas: oklch(0.99 0.003 260);
-  --color-surface: oklch(0.975 0.004 260);
-  --color-surface-2: oklch(0.95 0.005 260);
+  /* Surface ramp — obsidian slate with glass layers */
+  --color-canvas: oklch(0.12 0.025 265);
+  --color-surface: oklch(0.16 0.03 265);
+  --color-surface-2: oklch(0.20 0.035 265);
+  --color-surface-hover: oklch(0.25 0.045 265);
 
-  /* Signal accent — a deep teal. Deliberately avoids indigo/violet.
-     High contrast against canvas; reads as "trustworthy + precise". */
-  --color-accent: oklch(0.48 0.12 200);
-  /* primary */
-  --color-accent-700: oklch(0.40 0.11 200);
-  /* hover/pressed */
-  --color-accent-050: oklch(0.96 0.02 200);
-  /* tint background */
+  /* Non-traditional Vibrant Signal Accents */
+  --color-accent: oklch(0.72 0.19 220);         /* Electric Cyan */
+  --color-accent-hover: oklch(0.80 0.22 220);
+  --color-accent-050: oklch(0.22 0.06 220 / 0.3);
 
-  /* Semantic — data-viz roles (public/private, positive/negative). */
-  --color-public: oklch(0.48 0.12 200);
-  /* teal — matches accent */
-  --color-private: oklch(0.62 0.16 35);
-  /* warm amber */
-  --color-positive: oklch(0.55 0.13 150);
-  /* green */
-  --color-negative: oklch(0.55 0.18 25);
-  /* red */
+  --color-neon-magenta: oklch(0.68 0.24 315);    /* Electric Magenta */
+  --color-neon-violet: oklch(0.65 0.22 285);     /* Deep Violet */
+  --color-neon-amber: oklch(0.78 0.18 75);       /* Luminous Amber */
+  --color-neon-emerald: oklch(0.75 0.20 155);    /* Emerald Growth */
 
-  /* Categorical palette for sector charts — distinct, not a rainbow ramp. */
-  --color-cat-0: oklch(0.48 0.12 200);
-  --color-cat-1: oklch(0.62 0.16 35);
-  --color-cat-2: oklch(0.55 0.13 150);
-  --color-cat-3: oklch(0.55 0.16 295);
-  --color-cat-4: oklch(0.68 0.15 80);
-  --color-cat-5: oklch(0.55 0.13 250);
-  --color-cat-6: oklch(0.62 0.14 340);
-  --color-cat-7: oklch(0.55 0.12 170);
-  --color-cat-8: oklch(0.50 0.14 130);
+  /* Status roles */
+  --color-public: oklch(0.72 0.19 220);        /* Electric Cyan */
+  --color-private: oklch(0.78 0.18 75);        /* Luminous Amber */
+  --color-acquired: oklch(0.68 0.24 315);       /* Neon Magenta */
+  --color-defunct: oklch(0.55 0.15 25);         /* Coral Red */
+
+  /* Categorical palette for sector charts */
+  --color-cat-0: oklch(0.72 0.19 220); /* Cyan */
+  --color-cat-1: oklch(0.68 0.24 315); /* Magenta */
+  --color-cat-2: oklch(0.75 0.20 155); /* Emerald */
+  --color-cat-3: oklch(0.78 0.18 75);  /* Amber */
+  --color-cat-4: oklch(0.65 0.22 285); /* Violet */
+  --color-cat-5: oklch(0.72 0.18 190); /* Azure */
+  --color-cat-6: oklch(0.70 0.22 340); /* Rose */
+  --color-cat-7: oklch(0.74 0.19 130); /* Lime */
+  --color-cat-8: oklch(0.66 0.18 45);  /* Orange */
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
-  /* Spacing scale — 4px base */
+  /* Spacing scale */
   --spacing: 0.25rem;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--font-sans);
-  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
-  background: var(--color-canvas);
+  background-color: var(--color-canvas);
   color: var(--color-ink-700);
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
-/* Numbers should align in tables/charts */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Glassmorphism panel utility */
+.glass-panel {
+  background: rgba(22, 28, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-interactive {
+  background: rgba(22, 28, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  background: rgba(30, 38, 56, 0.85);
+  border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 8px 32px -4px rgba(0, 229, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Glow Border & Badge FX */
+.glow-border-cyan {
+  box-shadow: 0 0 15px -2px oklch(0.72 0.19 220 / 0.3);
+}
+
+.glow-border-magenta {
+  box-shadow: 0 0 15px -2px oklch(0.68 0.24 315 / 0.3);
+}
+
+.glow-border-amber {
+  box-shadow: 0 0 15px -2px oklch(0.78 0.18 75 / 0.3);
+}
+
+/* Numbers alignment */
 .tnum {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
 }
 
-/* Focus ring — visible, accessible */
+/* Custom Cyber Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(14, 18, 26, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Focus ring */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
-/* Reduced motion — non-negotiable */
-@media (prefers-reduced-motion: reduce) {
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
 
-  *,
-  *::before,
-  *::after {
+.animate-pulse-glow {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

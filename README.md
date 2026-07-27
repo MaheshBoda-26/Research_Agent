@@ -13,7 +13,8 @@ Built with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS v4**, and **Re
 - ⚡ **Dynamic Sorting & Pagination**: Sort by **Rank**, **Revenue**, **Market Cap / Valuation**, **Funding Raised**, **Employees**, **Founded Year**, or **Name**. Includes responsive pagination with page jumpers.
 - 📈 **KPI Metrics Strip**: Live aggregated financial metrics displaying total market cap/valuation, total revenue, total venture funding raised, company counts by tier, public vs private split, countries represented, median founding year, top sector, and top tier.
 - 📉 **Sector Analytics Visualization**: Interactive Recharts-powered sector distribution charts with toggleable metrics: **Company Count**, **Total Revenue**, **Market Cap / Valuation**.
-- 🛠️ **Data Build Pipeline**: Built-in TypeScript script (`scripts/build-data.ts`) that compiles raw verified dataset entries into consumable `JSON` and `CSV` files with strict TypeScript contracts.
+- ⚡ **Performance Optimizations (LCP & Code Splitting)**: Optimized initial load and Largest Contentful Paint (LCP) using dynamic imports (`React.lazy` + `Suspense`) for heavy graphics/charting components and custom Vite/Rollup manual chunking.
+- 🛠️ **Data Build Pipeline**: Built-in TypeScript script (`scripts/build-data.ts`) that compiles raw verified dataset entries, ranks them dynamically by valuation/funding, and outputs clean `JSON` and `CSV` files.
 
 ---
 
@@ -66,7 +67,7 @@ Research_report/
 ## 🚀 Tech Stack
 
 - **Frontend Core**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/)
-- **Build System**: [Vite 8](https://vite.dev/)
+- **Build System**: [Vite 8](https://vite.dev/) with Rollup code-splitting configuration to divide vendor libraries (React, Recharts, Three.js) and UI/animation/chart components into discrete chunks.
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/), Custom CSS Design System (`tokens.css`) using OKLCH color space
 - **Data Visualization**: [Recharts](https://recharts.org/)
 - **Linting & Quality**: [Oxlint](https://oxc.rs/docs/guide/usage/linter.html)
@@ -104,7 +105,7 @@ Open your browser and navigate to `http://localhost:5173`.
 
 ### Compiling Dataset
 
-To rebuild or recompile the raw data into formatted dataset outputs:
+To rebuild or recompile the raw data into formatted dataset outputs (sorting dynamically by valuation, funding raised, and name to generate rankings):
 ```bash
 npx tsx scripts/build-data.ts
 ```
@@ -210,5 +211,6 @@ Feel free to open an **Issue** or submit a **Pull Request**.
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
 
 

@@ -1,18 +1,19 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { companies } from './data/companies';
 import { FilterBar } from './components/FilterBar';
-import { CompanyDirectory } from './components/CompanyDirectory';
 import { KpiStrip } from './components/KpiStrip';
-import { SectorBar } from './components/charts/SectorBar';
-import { HeroCanvas } from './components/HeroCanvas';
 import { CompanyDrawer } from './components/CompanyDrawer';
 import { CompareDrawer } from './components/CompareDrawer';
 import { applyFilters, sortCompanies, useUrlFilters, type SortState } from './hooks/useFilters';
 import { computeKpis } from './lib/aggregate';
 import type { Company } from './types/company';
 import { AnimatedGridPattern } from './components/animations/AnimatedGridPattern';
-import LightPillar from './components/animations/LightPillar';
+// Dynamically import heavy components
+const LightPillar = lazy(() => import('./components/animations/LightPillar'));
+const SectorBar = lazy(() => import('./components/charts/SectorBar'));
+const HeroCanvas = lazy(() => import('./components/HeroCanvas'));
+const CompanyDirectory = lazy(() => import('./components/CompanyDirectory'));
 
 function Dashboard() {
   const { filters, update, reset } = useUrlFilters();
@@ -47,19 +48,21 @@ function Dashboard() {
     <div className="min-h-screen bg-canvas text-ink-700 selection:bg-accent selection:text-canvas relative overflow-hidden">
       {/* ── Futuristic Animated Background ── */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <LightPillar
-          topColor="#F97316"
-          bottomColor="#2563EB"
-          intensity={1.0}
-          rotationSpeed={0.2}
-          glowAmount={0.005}
-          pillarWidth={3.0}
-          pillarHeight={0.4}
-          noiseIntensity={0.5}
-          pillarRotation={45}
-          interactive={false}
-          mixBlendMode="screen"
-        />
+        <Suspense fallback={<div className="w-full h-full bg-gradient-to-b from-orange-500/10 to-blue-500/10" />}>
+          <LightPillar
+            topColor="#F97316"
+            bottomColor="#2563EB"
+            intensity={1.0}
+            rotationSpeed={0.2}
+            glowAmount={0.005}
+            pillarWidth={3.0}
+            pillarHeight={0.4}
+            noiseIntensity={0.5}
+            pillarRotation={45}
+            interactive={false}
+            mixBlendMode="screen"
+          />
+        </Suspense>
       </div>
       <AnimatedGridPattern 
         className="text-accent/20"
@@ -71,7 +74,9 @@ function Dashboard() {
 
       {/* ── Header Hero Section ── */}
       <header className="relative border-b border-white/8 glass-panel sticky top-0 z-30">
-        <HeroCanvas />
+        <Suspense fallback={<div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-blue-500/10" />}>
+          <HeroCanvas />
+        </Suspense>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fadeInDown">
             <div className="space-y-1">
@@ -143,20 +148,28 @@ function Dashboard() {
 
             {/* Sector Analytics Grid */}
             <div className="animate-fadeInUp" style={{ animationDelay: '300ms' }}>
-              <SectorBar companies={filteredCompanies} />
+              <Suspense fallback={<div className="glass-panel rounded-xl p-5 shadow-xl h-[320px] flex items-center justify-center">
+                <div className="animate-pulse text-ink-500">Loading analytics...</div>
+              </div>}>
+                <SectorBar companies={filteredCompanies} />
+              </Suspense>
             </div>
 
             {/* Main Company Directory Table / Grid */}
             <div className="animate-fadeInUp" style={{ animationDelay: '400ms' }}>
-              <CompanyDirectory
-                companies={sortedCompanies}
-                sort={sort}
-                onSortChange={setSort}
-                onSelectCompany={setSelectedCompany}
-                comparingCompanies={comparingCompanies}
-                onToggleCompare={handleToggleCompare}
-                searchQuery={filters.query}
-              />
+              <Suspense fallback={<div className="glass-panel rounded-xl p-5 shadow-xl h-[400px] flex items-center justify-center">
+                <div className="animate-pulse text-ink-500">Loading directory...</div>
+              </div>}>
+                <CompanyDirectory
+                  companies={sortedCompanies}
+                  sort={sort}
+                  onSortChange={setSort}
+                  onSelectCompany={setSelectedCompany}
+                  comparingCompanies={comparingCompanies}
+                  onToggleCompare={handleToggleCompare}
+                  searchQuery={filters.query}
+                />
+              </Suspense>
             </div>
           </div>
         </div>

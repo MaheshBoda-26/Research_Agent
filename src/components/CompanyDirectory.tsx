@@ -349,3 +349,5 @@ export function CompanyDirectory({
     </div>
   );
 }
+
+export default CompanyDirectory;

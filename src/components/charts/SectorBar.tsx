@@ -26,7 +26,7 @@ const COLORS = [
   'oklch(0.66 0.18 45)',  /* Orange */
 ];
 
-export function SectorBar({ companies }: SectorBarProps) {
+function SectorBar({ companies }: SectorBarProps) {
   const data = useMemo(() => {
     const map = new Map<string, SectorData>();
     for (const c of companies) {
@@ -137,3 +137,5 @@ export function SectorBar({ companies }: SectorBarProps) {
     </div>
   );
 }
+
+export default SectorBar;

@@ -217,3 +217,5 @@ export function HeroCanvas() {
     />
   );
 }
+
+export default HeroCanvas;

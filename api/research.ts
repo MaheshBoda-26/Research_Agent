@@ -7,7 +7,7 @@ const PROVIDERS = [
     name: 'openrouter' as const,
     url: 'https://openrouter.ai/api/v1/chat/completions',
     apiKey: process.env.OPENROUTER_API_KEY,
-    model: 'openai/gpt-4o-mini',
+    model: 'openai/gpt-oss-20b:free',
   },
   {
     name: 'nvidia' as const,

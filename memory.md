@@ -10,6 +10,7 @@ The following table details all the commits that have shaped the current codebas
 
 | Commit Hash | Date | Description | Author | Key Changes / Context |
 | :--- | :--- | :--- | :--- | :--- |
+| **`0f7174e`** | 2026-08-04 | Build an Agent mode Feature | MaheshBoda-26 | Modified memory.md |
 | **`187208e`** | 2026-08-04 | Build an Agent mode Feature | MaheshBoda-26 | Modified .gitignore, research.ts, memory.md, package-lock.json + 8 more files |
 | **`acbdad7`** | 2026-07-28 | feat: add memory log tracking and auto-update hook | Mahesh Boda | Modified memory.md, package.json, update-memory.cjs |
 | **`2c44230`** | 2026-07-27 | perf: optimize LCP with lazy loading & manual chunking, update company dataset and rankings, and update README | Mahesh Boda | Modified companies.csv, companies.json, build-data.ts, App.tsx + 4 more files |
@@ -49,17 +50,17 @@ Compiles and optimizes the React 19 application for production.
 | Asset Path | Size | Description |
 | :--- | :--- | :--- |
 | `dist/assets/3d-graphics-C9vLFjqg.js` | `501.22 kB` | Three.js 3D graphics rendering library |
-| `dist/assets/CompanyDirectory-9jPjdFYv.js` | `12.23 kB` | Interactive database directory components |
-| `dist/assets/HeroCanvas-CpWQ3S5O.js` | `3.12 kB` | Interactive 3D background canvas |
+| `dist/assets/CompanyDirectory-CjGRtMfX.js` | `12.23 kB` | Interactive database directory components |
+| `dist/assets/HeroCanvas-w70JUyAP.js` | `3.12 kB` | Interactive 3D background canvas |
 | `dist/assets/agent-page-CIdPGQMV.css` | `264 Bytes` | Compiled application stylesheets |
-| `dist/assets/agent-page-DlXR4f1j.js` | `77.66 kB` | Application code bundle / chunk |
-| `dist/assets/charting-BfLHrR-1.js` | `343.93 kB` | Recharts visualization library chunk |
-| `dist/assets/charts-BWRs_n5w.js` | `3.6 kB` | Data visualization charting components |
-| `dist/assets/index-CmL4FLYF.js` | `81.29 kB` | Application code bundle / chunk |
+| `dist/assets/agent-page-DP6yhQx0.js` | `75.53 kB` | Application code bundle / chunk |
+| `dist/assets/charting-Cdbhe6hp.js` | `343.93 kB` | Recharts visualization library chunk |
+| `dist/assets/charts-lKKLzFJg.js` | `3.6 kB` | Data visualization charting components |
 | `dist/assets/index-NO7fuGHE.css` | `64.94 kB` | Compiled application stylesheets |
-| `dist/assets/react-vendor-CpR6Ntnb.js` | `174.18 kB` | React core libraries vendor chunk |
+| `dist/assets/index-WOWUaH3U.js` | `81.29 kB` | Application code bundle / chunk |
+| `dist/assets/react-vendor-DXKLa3wX.js` | `174.18 kB` | React core libraries vendor chunk |
 | `dist/assets/rolldown-runtime-QTnfLwEv.js` | `694 Bytes` | Bundler runtime orchestrator |
-| `dist/assets/ui-components-BJl8ZpWT.js` | `30.54 kB` | Application code bundle / chunk |
+| `dist/assets/ui-components-omXXWuqK.js` | `30.54 kB` | Application code bundle / chunk |
 | `dist/favicon.svg` | `9.3 kB` | Static asset resource |
 | `dist/icons.svg` | `4.91 kB` | Static asset resource |
 | `dist/index.html` | `1.59 kB` | Entry HTML document |

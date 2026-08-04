@@ -10,6 +10,7 @@ The following table details all the commits that have shaped the current codebas
 
 | Commit Hash | Date | Description | Author | Key Changes / Context |
 | :--- | :--- | :--- | :--- | :--- |
+| **`187208e`** | 2026-08-04 | Build an Agent mode Feature | MaheshBoda-26 | Modified .gitignore, research.ts, memory.md, package-lock.json + 8 more files |
 | **`acbdad7`** | 2026-07-28 | feat: add memory log tracking and auto-update hook | Mahesh Boda | Modified memory.md, package.json, update-memory.cjs |
 | **`2c44230`** | 2026-07-27 | perf: optimize LCP with lazy loading & manual chunking, update company dataset and rankings, and update README | Mahesh Boda | Modified companies.csv, companies.json, build-data.ts, App.tsx + 4 more files |
 | **`ebbf758`** | 2026-07-27 | Update README.md | Mahesh Boda | Modified README.md |

@@ -1,5 +1,5 @@
 import { useMemo, useState, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { companies } from './data/companies';
 import { FilterBar } from './components/FilterBar';
 import { KpiStrip } from './components/KpiStrip';
@@ -14,6 +14,7 @@ const LightPillar = lazy(() => import('./components/animations/LightPillar'));
 const SectorBar = lazy(() => import('./components/charts/SectorBar'));
 const HeroCanvas = lazy(() => import('./components/HeroCanvas'));
 const CompanyDirectory = lazy(() => import('./components/CompanyDirectory'));
+const AgentMode = lazy(() => import('./pages/AgentMode').then((m) => ({ default: m.AgentMode })));
 
 function Dashboard() {
   const { filters, update, reset } = useUrlFilters();
@@ -111,6 +112,15 @@ function Dashboard() {
                   ${(kpis.totalCapital / 1e12).toFixed(2)}T
                 </span>
               </div>
+              <Link
+                to="/agent"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold font-display uppercase tracking-wider text-accent bg-accent-050 border border-accent/30 hover:bg-accent/20 hover:shadow-[0_0_15px_oklch(0.72_0.19_220/0.3)] transition-all chip-transition"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Agent Mode
+              </Link>
             </div>
           </div>
         </div>
@@ -213,6 +223,22 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route
+          path="/agent"
+          element={
+            <Suspense fallback={
+              <div className="min-h-screen bg-canvas flex items-center justify-center">
+                <div className="glass-panel rounded-xl p-6 space-y-3 w-80">
+                  <div className="shimmer h-4 rounded" />
+                  <div className="shimmer h-4 rounded w-3/4" />
+                  <div className="shimmer h-20 rounded" />
+                </div>
+              </div>
+            }>
+              <AgentMode />
+            </Suspense>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

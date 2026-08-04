@@ -16,17 +16,19 @@ export default defineConfig({
             if (id.includes('three')) return '3d-graphics';
             return 'vendor';
           }
-          
+
           // Split components by feature
           if (id.includes('/components/animations/')) return 'animations';
           if (id.includes('/components/charts/')) return 'charts';
-          if (id.includes('/components/') && 
-              (id.includes('FilterBar') || 
-               id.includes('KpiStrip') || 
-               id.includes('CompanyDrawer') || 
+          if (id.includes('/components/') &&
+              (id.includes('FilterBar') ||
+               id.includes('KpiStrip') ||
+               id.includes('CompanyDrawer') ||
                id.includes('CompareDrawer'))) {
             return 'ui-components';
           }
+
+          if (id.includes('/pages/')) return 'agent-page';
         }
       }
     }
